@@ -1,51 +1,81 @@
 import {createStore} from "redux";
 interface initialStateType {
-    balance:number,
-    loan:number,
-    loanPurpose:string,
+    balance: number,
+    loan: number,
+    loanPurpose: string,
 }
 
-const initialState:initialStateType = {
-    balance:0,
-    loan:0,
-    loanPurpose:"",
+interface Action {
+    type: string;
+    payload?: any;
 }
 
-function reducer(state = initialState, action) {
+const initialState: initialStateType = {
+    balance: 0,
+    loan: 0,
+    loanPurpose: "",
+}
+
+function reducer(state = initialState, action: Action) {
     switch (action.type) {
         case 'account/deposit':
             return {
                 ...state,
-                balance:state.balance + action.payload,
+                balance: state.balance + action.payload,
             }
-            case 'account/withdraw':
-                return {
-                    ...state,
-                    balance:state.balance - action.payload,
-                }
-                case 'account/requestLoan':
-                    if (state.loan>0) return state;
-                    return {
-                        ...state,
-                        loan: action.payload.amount,
-                        loanPurpose:action.payload.purpose,
-                        balance:state.balance + action.payload.amount,
-                    }
-                    case 'account/payLoan':
-                        return {
-                            ...state,
-                            loan: 0,
-                            loanPurpose:"",
-                            balance:state.balance - state.loan,
-                        }
-                        default:
-                            return state;
+        case 'account/withdraw':
+            return {
+                ...state,
+                balance: state.balance - action.payload,
+            }
+        case 'account/requestLoan':
+            if (state.loan > 0) return state;
+            return {
+                ...state,
+                loan: action.payload.amount,
+                loanPurpose: action.payload.purpose,
+                balance: state.balance + action.payload.amount,
+            }
+        case 'account/payLoan':
+            return {
+                ...state,
+                loan: action.payload,
+                balance: state.balance - action.payload
+            }
+        default:
+            return state;
     }
 }
-export const store=createStore(reducer);
 
-store.dispatch({type:'account/deposit',payload:500});
-store.dispatch({type:'account/withdraw',payload:200});
-store.dispatch({type:'account/requestLoan',payload: {amount:1000,purpose:"buy a car"} });
-store.dispatch({type:'account/payLoan',payload:1000});
-console.log(store.getState());
+export const store = createStore(reducer);
+
+function deposit(amount: number) {
+    return { type: 'account/deposit', payload: amount }
+}
+
+function withdraw(amount: number) {
+    return { type: 'account/withdraw', payload: amount }
+}
+
+function requestLoan(amount: number, loanPurpose: string) {
+    return {
+        type: 'account/requestLoan',
+        payload: { amount, purpose: loanPurpose }
+    }
+}
+
+function payLoan(amount: number) {
+    return { type: 'account/payLoan',payload: amount }
+}
+
+store.dispatch(deposit(750));
+console.log("After deposit:", store.getState());
+
+store.dispatch(withdraw(200));
+console.log("After withdraw:", store.getState());
+
+store.dispatch(requestLoan(2000, "buy a home"));
+console.log("After loan request:", store.getState());
+
+store.dispatch(payLoan(150));
+console.log("After loan payment:", store.getState());
